@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!--
+    !!!!! 중요 꼭 현재 폴더에서 $ mvn clean install -U 를 실행해줘야 하위 모듈들이 제대로 배포됨 !!!!!
+    환경이 java7일경우 maven repository 다운로드시 문제가 발생함 환경변수에서 java8 이상권장됨
+    ====================================================================================================================
+    1.기본명령어
+    compile  -> 컴파일 수행
+    test     -> 컴파일 수행 후 테스트 클래스 수행
+    package  -> 컴파일을 수행하고 컴파일한 소스를 packaging 양식에 맞춰 프로젝트 내 지정한 경로 디렉토리에 생성
+    install  -> package 한 것에 추가적으로 로컬 repository에 배포
+    deploy   -> install 한 것에 추가적으로 원격 repository에 배포
+    clean    -> maven build 시 생성된 모든 것들을 삭제
+    site     -> target, site에 문서사이트 생성
+    ====================================================================================================================
+    2. 옵션 mvn clean compile package -e -X  -U
+    -am   (also-make)                -> 프로젝트 목록이 지정된 경우 목록에 필요한 프로젝트도 빌드
+    -amd  (also-make-dependents)     -> 프로젝트 목록이 지정된 경우 목록의 프로젝트에 의존하는 프로젝트도 빌드
+    -B    (batch-mode)               -> 비 대화식 (일괄처리)모드에서 실행
+    -b    (builder)                  -> 사용할 빌드 전략의 ID
+    -C    (strict-checksums)         -> 체크섬이 일치하지 않으면 빌드 실패
+    -c    (lax-checksums)            -> 체크섬이 일치하지 않으면 경고
+    -cpu  (check-plugin-updates)     -> 비효율적이며 이전 버전과의 호환성을 위해서만 유지
+    -D    (define)                   -> 시스템 속성 정의
+    -e    (errors)                   -> 실행 오류 메시지 생성
+    -emp  (encrypt-master-password)  -> 마스터 보안 비밀번호 암호화
+    -f    (file)                     -> 대체 POM (pom.xml 있는 디렉토리)파일을 사용
+    -fae  (fail-at-end)              -> 영향을 받지 않은 모든 빌드가 계속되도록 허용
+    -ff   (fail-fast)                -> 원자로 빌드에서 처음 실패시 중지
+    -fn   (fail-never)               -> 프로젝트 결과에 관계없이 빌드 실패 허용 X
+    -gs   (global-settings)          -> 글로벌 설정 파일의 대체 경로
+    -gt   (global-toolchains)        -> 글로벌 툴체인 파일의 대체 경로
+    -h    (help)                     -> 도움말 정보 표시
+    -l    (log-file)                 -> 모든 빌드 출력이 진행되는 로그 파일
+    -llr  (legacy-local-repository)  -> remote.repositories 사용 X
+    -N    (non-recursive)            -> 하위 프로젝트로 재귀 X
+    -npr  (no-plugin-registry)       -> 비효율적이며 이전 버전과의 호환성을 위해서만 유지
+    -nou  (no-plugin-updates)        -> 비효율적이며 이전 버전과의 호환성을 위해서만 유지
+    -nsu  (no-snapshot-updates)      -> SNAPSHOT 업데이트 억제
+    -ntp  (no-transfer-progress)     -> 다운로드 또는 업로드시 전송 진행률을 표시 X
+    -o    (offline)                  -> 오프라인으로 작업
+    -P    (activate-profiles)        -> 활성화 할 쉼표로 구분된 프로파일 목록
+    -pl   (projects)                 -> 모든 프로젝트 대신 빌드 항 지정된 원자로 프로젝트의 목록입니다.
+    -q    (quiet)                    -> 조용한 출력-오류만 표시
+    -rf   (resume-from)              -> 지정된 프로젝트에서 원자로 재개
+    -s    (settings)                 -> 사용자 설정 파일의 대체 경로
+    -t    (toolchains)               -> 사용자 툴체인 파일의 대체 경로
+    -T    (threads)                  -> 스레드 수
+    -U    (update-snapshots)         -> 원격 repository 누락된 릴리스 및 업데이트된 스냅샷을 검사합니다.
+    -up   (update-plugins)           -> 비효율적이며 이전 버전과의 호환성을 위해서만 유지
+    -v    (version)                  -> 버전 정보 표시
+    -V    (show-version)             -> 빌드를 중단하지 않고 버전 정보 표시
+    -X    (debug)                    -> 실행 디버그 출력 생성
+    ====================================================================================================================
+    3.확장 플러그인 명령어
+    assembly:assembly -Dmaven.test.skip=true : 의존성을 포함한 jar 파일 생성 테스트 생략
+    dependency:copy-dependencies : 의존성이 있는 lib 폴더에 복사한다
+    jar:jar :프로젝트 jar 파일 생성
+    ====================================================================================================================
+    4.로컬리파짓토리에 jar 파일을 아래와 같이 추가 할수 있음
+    $ install:install-file -Dfile=/libs/ojdbc7.jar -DgroupId=com.oracle.jdbc -DartifactId=ojdbc7 -Dversion=12.1 -Dpackaging=jar -DgeneratePom=true
+    ====================================================================================================================
+    5.Maven dependency scope 종류와 설정
+    compile  : 컴파일 시점에 필요하고 배포할때도 포함이 되어진다. 이 프로젝트를 dependency 설정된 다른 프로젝트에서도 포함이 된다.
+    provided : 컴파일 시점에는 필요하지만 배포시점에는 불 필요한 라이브러리로 JDK, servlet API, Java EE API 등이 해당된다.
+    runtime  : 컴파일 시점에는 필요없지만 runtime 시점에 필요한 라이브러리
+    system   : Repository 검색을 하지 않고 명시된 위치에서 Jar 이용한다. 그외 provided 유사함.
+    test     : 테스트 컴파일과 실행 시점에만 사용됨. !! 평소에 Class Not Found Error 를 낸다.
+    import   : Maven 2.0.9 이후에서만 적용, 다른 POM 설정 파일에 정의되어 있는 의존 관계 설정을 현재 프로젝트로 가져온다
+               <dependencyManagement>에서만 사용이 가능하다.
+    메이블 실행시 옵션을 주면 배포 라이브러리 에서 제외됨
+    $ mvn dependency:copy-dependencies -DexcludeScope=provided
+    ====================================================================================================================
+    5.사용가능한 변수들 (Available Variables)
+    ${project.groupId}
+    ${project.version}
+    ${project.build.sourceDirectory}
+    ${project.basedir}       The directory that the current project resides in.
+    ${project.baseUri}       The directory that the current project resides in, represented as an URI. Since Maven 2.1.0
+    ${maven.build.timestamp} The timestamp that denotes the start of the build. Since Maven 2.1.0-M1
+    ====================================================================================================================
+    mvn clean install -U 를 실행 시켜 줘야 로컬리파짓토리에 등록됨 !!!!
+    라이브러리의 소스 코드 및 문서 다운로드
+    mvn dependency:sources
+    mvn dependency:resolve -Dclassifier=javadoc
+    -->
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>codehug.kr</groupId>
+    <artifactId>frame</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging> <!-- 최상위 POM 반드시 packaging 형태가 jar 아닌 pom 으로 선언 되어 있어야됨 -->
+    <name>frame</name> <!-- 표시명 -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- 전역설정 모든 플러그인 디폴트 -->
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding> <!-- 출력 인코딩 설정 -->
+        <java.version>1.8</java.version> <!-- 기본설정값 자바8로 컴파일하고 엔코딩은 UTF-8로 -->
+        <source-java.version>${java.version}</source-java.version>
+        <target-java.version>${java.version}</target-java.version>
+        <poi.version>5.3.0</poi.version> <!-- 엑셀 -->
+        <bouncycastle.version>1.79</bouncycastle.version> <!-- RSA -->
+        <log4j2.version>2.24.2</log4j2.version> <!-- log4j -->
+        <springframework-version>5.3.39</springframework-version> <!-- Spring 5.x java1.8, java11 지원 6.x java17 버전 이상 -->
+    </properties>
+    <!-- ============================================== FrameWork Libs ============================================= -->
+    <dependencies>
+        <dependency> <!-- Log4j2 SLF4J Binding 로그4j를 사용해서 로깅함 log4j2.xml 설정해야됨 -->
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j2.version}</version>
+        </dependency>
+        <dependency> <!-- Connection 풀링 함 -->
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>2.12.0</version>
+        </dependency>
+        <dependency> <!-- json 데이터 처리 -->
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency> <!-- 캐쉬 및 3중맵 -->
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.3.1-jre</version>
+        </dependency>
+        <dependency> <!-- email 사용을 위한 패키지 START -->
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+        <dependency> <!-- 동적 SQL 처리 하기 위한 표현식 -->
+            <groupId>ognl</groupId>
+            <artifactId>ognl</artifactId>
+            <version>3.4.3</version>
+        </dependency>
+        <dependency> <!-- Web File UpLoad -->
+            <groupId>servlets.com</groupId>
+            <artifactId>cos</artifactId>
+            <version>05Nov2002</version>
+        </dependency>
+        <!-- 1. commons-io 는 poi 와 충돌난다 그래서 제외 SavedHttpRequestTest.apacheUpload
+             2. kr.co.webstyle.wtk.web.ApacheUploadServlet 한번에 업로드를 100개로 제한 하므로 취약점 해결됨
+             3. ME_TA_UTL/webapp/work/formsave.html 에서 logs/test.UploadFiles.req 로 저장됨 -->
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.5</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency> <!-- 파일인코딩 자동인식 go) FileUtil -->
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>76.1</version>
+        </dependency>
+        <!-- =================================== Excel, Csv, Pdf 문서 파싱 Libs ================================== -->
+        <!-- Excel, Csv, Pdf 문서 파싱 Libs
+         가끔 엑셀의 오래된 버전을 읽다 보면 아래과 같은 에러가 발생하는데 포이의 소스를 받아서 수정해야됨
+         org.apache.poi.util.RecordFormatException: Duplicate PageSettingsBlock record (sid=0x29)
+         아래부분을 에러가 안나게 수정함 PageSettingsBlock.checkNotPresent
+         private void checkNotPresent(Record rec)
+         {
+            if (rec != null){}
+         }
+         소스는 아래에서 버전에 맞게 구한다. https://poi.apache.org/download.html -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.27.1</version>
+        </dependency>
+        <dependency> <!-- LargeExcelReadProcessor 에서 SAX2 driver class org.apache.xerces.parsers.SAXParser not found 에러발생 -->
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.12.2</version>
+        </dependency>
+        <dependency> <!-- java 에서 CSV 다루기 -->
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.9</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-collections</groupId>
+                    <artifactId>commons-collections</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- ============================================= Network Libs ============================================ -->
+        <dependency> <!-- Samba SMB 네트워크 -->
+            <groupId>jcifs</groupId>
+            <artifactId>jcifs</artifactId>
+            <version>1.3.17</version>
+            <exclusions> <!-- 서블릿 lib 제외 -->
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!--
+        java SFTP 파일 업로드 만일 한글이 깨져서 올라가면
+        한글패치는 http://www.jcraft.com/jsch/ 에서 소스를 받아서 com.jcraft.jsch.ChannelSftp 클래스에서
+        public void setFilenameEncoding(String encoding) throws SftpException{
+            //int sversion=getServerVersion();
+            //if(3 <= sversion && sversion <= 5 &&
+            //   !encoding.equals(UTF8)){
+            //  throw new SftpException(SSH_FX_FAILURE,
+            //                          "The encoding can not be changed for this sftp server.");
+            //}
+            if(encoding.equals(UTF8))
+            {
+                 encoding=UTF8;
+            }
+            fEncoding=encoding;
+            fEncoding_is_utf8=fEncoding.equals(UTF8);
+        }
+        패치후 로컬에 반영
+        mvn install:install-file -Dfile=jsch-0.1.55kr.jar -DgroupId=com.jcraft -DartifactId=jsch -Dversion=0.1.55 -Dpackaging=jar -DgeneratePom=true
+        -->
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.55</version>
+        </dependency>
+        <dependency> <!-- 네트워크 lib -->
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.11.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.14</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- =========================================== Jdbc Driver Libs ========================================== -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.4</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>checker-qual</artifactId>
+                    <groupId>org.checkerframework</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <version>23.6.0.24.10</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>12.8.1.jre8</version>
+        </dependency>
+        <!-- !! log4j와 충돌 tomcat/lib 복사시 log4j2 동작 안함 다른 DB를 사용하거나 WEB-INF/lib 복사를 해야됨 !!
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.45.3.0</version>
+        </dependency>
+        -->
+        <!-- ====================================== bouncycastle 암복호화 모듈 ===================================== -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcmail-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpg-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+        <!-- ====================================== interface 관련 모듈  =========================================== -->
+        <!--
+         Sap Java InterFace
+         window 일경우 sapjco3.dll를 System32   폴더에 복사
+         linux  일경우 sapjco3.so를  tomcat/lib 폴더에 복사
+         WS_FW_SS2/libs/sapjco3 폴더로 가서
+         아래명령어로 인스톨하면 로컬리포짓토리에 추가됨
+         mvn install:install-file -Dfile=sapjco3.jar -DgroupId=com.sap -DartifactId=sapjco -Dversion=3 -Dpackaging=jar -DgeneratePom=true
+        -->
+        <dependency>
+            <groupId>com.sap</groupId>
+            <artifactId>sapjco</artifactId>
+            <version>3</version>
+        </dependency>
+        <dependency> <!-- Kafka Message Server -->
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.7.0</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency> <!-- Elasticsearch Search Engine -->
+            <groupId>co.elastic.clients</groupId>
+            <artifactId>elasticsearch-java</artifactId>
+            <version>8.15.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+        <dependency> <!-- Redis Cashe Server -->
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <version>6.3.2.RELEASE</version>
+        </dependency>
+        <!-- ======== 테스트 컴파일 시점에만 필요한 library ===============================================-->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.17.1</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+    <build> <!-- 빌드설정 -->
+        <outputDirectory>target/classes</outputDirectory> <!-- mvn compile  빌드 디렉토리 지정가능 -DoutputDirectory=${classes.dir} -->
+        <testOutputDirectory>target/test-classes</testOutputDirectory> <!-- mvn test-compile 빌드 디렉토리 지정가능 -DtestOutputDirectory=${test-classes.dir} -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${source-java.version}</source>
+                    <target>${target-java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
