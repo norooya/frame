@@ -1,35 +1,30 @@
 # This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
 # For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
-
-name: Maven Package
-
+name: Maven-publish
 on:
   push:
-    branches: [ "main" ]
-
+    branches: [ "main" ] # 'main' 브랜치에 푸시가 발생할 때 워크플로우 실행
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # 최신 Ubuntu 환경에서 실행
     permissions:
-      contents: read
-      packages: write
-
+      contents: read  # 코드 접근 권한 설정 (읽기)
+      packages: write # 패키지 권한 설정 (쓰기)
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
+      - uses: actions/checkout@v4 # 저장소의 코드를 체크아웃하여 가져옵니다.
+      - name: Set up JDK 17 # JDK 17을 설정하는 단계
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-      - name: maven lib install
+          java-version: '17' # JDK 버전 17 사용
+          distribution: 'temurin' # Temurin 배포판 사용
+          cache: maven # Maven 의존성 캐시 처리 (빌드 속도 향상)
+      - name: maven lib install  # SAP JCo 라이브러리 설치 단계 외부 라이브러리 (sapjco-3.jar)를 Maven 로컬 저장소에 설치
         run: mvn install:install-file -Dfile=./extlib/sapjco-3.jar -DgroupId=com.sap -DartifactId=sapjco -Dversion=3 -Dpackaging=jar -DgeneratePom=true
-      - name: Build with Maven
+      - name: Build with Maven # Maven으로 프로젝트를 빌드하고, JAR 파일을 생성
         run: mvn -B package --file pom.xml
       - name: copy staging
-        run: mkdir staging && cp target/*.jar staging
-      - uses: actions/upload-artifact@v4
+        run: mkdir staging && cp target/*.jar staging # 빌드된 .jar 파일을 'staging' 폴더에 복사
+      - uses: actions/upload-artifact@v4  # 빌드된 아티팩트를 GitHub Actions 아티팩트로 업로드
         with:
           name: Package
           path: staging
