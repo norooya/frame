@@ -310,12 +310,12 @@
          WS_FW_SS2/libs/sapjco3 폴더로 가서
          아래명령어로 인스톨하면 로컬리포짓토리에 추가됨
          mvn install:install-file -Dfile=sapjco3.jar -DgroupId=com.sap -DartifactId=sapjco -Dversion=3 -Dpackaging=jar -DgeneratePom=true
-        -->
         <dependency>
             <groupId>com.sap</groupId>
             <artifactId>sapjco</artifactId>
             <version>3</version>
         </dependency>
+        -->
         <dependency> <!-- Kafka Message Server -->
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
