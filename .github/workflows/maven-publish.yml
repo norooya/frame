@@ -23,6 +23,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+      - name: maven lib install
+        run: mvn install:install-file -Dfile=./extlib/sapjco3.jar -DgroupId=com.sap -DartifactId=sapjco -Dversion=3 -Dpackaging=jar -DgeneratePom=true
       - name: Build with Maven
         run: mvn -B package --file pom.xml
       - name: copy staging
