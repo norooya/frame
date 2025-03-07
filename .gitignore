@@ -28,7 +28,6 @@ temp/
 .idea/
 .vscode/
 .c9/
-.mvn/
 .metadata/
 .obsidian/
 .gradle/
