@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('echo') {
             steps {
-                sh 'echo "${params.GIT_TAG}" > params.txt'
+                sh "echo ${params.GIT_TAG} > params.txt"
             }
         }
     }
